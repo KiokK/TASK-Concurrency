@@ -3,6 +3,7 @@ package by.kihtenkoolga;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -10,7 +11,7 @@ public class Client implements Runnable {
     public final ExecutorService clientExecutor;
 
     /** Общий ресурс - данные клиента */
-    public final List<Integer> dataList;
+    public List<Integer> dataList;
 
     public List<Response> responseList = new ArrayList<>();
 
@@ -27,19 +28,29 @@ public class Client implements Runnable {
     @Override
     public void run() {
         randomizeDataList();
-        dataList.forEach(data -> {
-            clientExecutor.submit(() -> {
+        AtomicInteger i = new AtomicInteger(dataList.size() - 1);
 
-                Request request = new Request(data);
+        for (int k = 0; k < dataList.size(); k++)
+            clientExecutor.submit(() -> {
+                Request request = getAndDeleteData(i);
+
                 System.out.println("Начато Thread name " + Thread.currentThread().getName());
                 Response response = server.handleRequest(request);
-                addToResponses(response);
+                addToResponses(response, i);
                 System.out.println("Завершение Thread name " + Thread.currentThread().getName());
             });
-        });
     }
 
-    public void addToResponses(Response response) {
+    private Request getAndDeleteData(AtomicInteger i) {
+        locker.lock();
+        try {
+            return new Request(dataList.remove(i.getAndDecrement()));
+        } finally {
+            locker.unlock();
+        }
+    }
+
+    private void addToResponses(Response response, AtomicInteger i) {
         locker.lock();
         try {
             responseList.add(response);

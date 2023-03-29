@@ -20,20 +20,20 @@ public class Main {
         Server server = new Server(serverExecutor, dataList.size());
         Client client = new Client(clientExecutor, server, dataList);
 
-        runTask(server, client, dataList);
+        runTask(server, client, dataList.size());
     }
 
-    public static List<Response> runTask(Server server, Client client, List<Integer> dataList) {
+    public static List<Response> runTask(Server server, Client client, int length) {
         client.run();
 
-        while (getResponsesSize(client.responseList) != dataList.size()) {
+        while (getResponsesSize(client.responseList) != length) {
 
         }
 
         client.clientExecutor.shutdown();
         server.serverExecutor.shutdown();
 
-        System.out.println("\nAccomulator: " + server.getAccumulator());
+        System.out.println("\nAccumulator: " + server.getAccumulator());
         return client.responseList;
     }
 

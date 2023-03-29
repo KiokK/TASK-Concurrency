@@ -1,6 +1,8 @@
 package by.kihtenkoolga;
 
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Server {
 
@@ -31,11 +33,10 @@ public class Server {
 
      private class ServerCaller implements Callable<Response> {
         private final Request request;
-        private Semaphore semaphore;
+        private Lock lock = new ReentrantLock();
 
         ServerCaller(Request request) {
             this.request = request;
-            semaphore = new Semaphore(1);
         }
 
         @Override
@@ -64,13 +65,11 @@ public class Server {
          }
          private void increment(int x) {
              try {
-                 semaphore.acquire();
+                 lock.lock();
                  accumulator += x;
                  remainedCount--;
-             } catch (InterruptedException e) {
-                 throw new RuntimeException(e);
              } finally {
-                 semaphore.release();
+                 lock.unlock();
              }
          }
     }
