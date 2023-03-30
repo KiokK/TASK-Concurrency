@@ -8,38 +8,13 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.assertj.core.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class MainTest {
 
     @Test
-    void testRunTaskShouldReturnEmptyDataList() {
-        List<Integer> dataList = new ArrayList<>();
-        dataList.addAll(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
-        ExecutorService clientExecutor = Executors.newFixedThreadPool(3);
-        ExecutorService serverExecutor = Executors.newFixedThreadPool(3);
-        Server server = new Server(serverExecutor, dataList.size());
-        Client client = new Client(clientExecutor, server, dataList);
-
-        Main.runTask(server, client, dataList.size());
-
-        Assertions.assertThat(client.dataList.size()).isEqualTo(0);
-    }
-    @Test
-    void testRunTaskShouldReturn12DataListSize() {
-        List<Integer> dataList = new ArrayList<>();
-        dataList.addAll(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
-        ExecutorService clientExecutor = Executors.newFixedThreadPool(2);
-        ExecutorService serverExecutor = Executors.newFixedThreadPool(3);
-        Server server = new Server(serverExecutor, dataList.size());
-        Client client = new Client(clientExecutor, server, dataList);
-
-        List<Response> responses = Main.runTask(server, client, dataList.size());
-
-        Assertions.assertThat(client.responseList.size()).isEqualTo(12);
-    }
-    @Test
-    void testRunTaskShouldReturnAccomulator55() {
+    void testRunTaskClientServer() {
         final int expected = 55;//(1+n) * (n/2)
         List<Integer> dataList = new ArrayList<>();
         dataList.addAll(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
@@ -50,7 +25,11 @@ class MainTest {
 
         Main.runTask(server, client, dataList.size());
 
-        Assertions.assertThat(server.getAccumulator()).isEqualTo(expected);
+        assertAll(
+                () -> assertThat(server.getAccumulator()).isEqualTo(expected),
+                () -> assertThat(client.responseList.size()).isEqualTo(10),
+                () ->assertThat(client.dataList.size()).isEqualTo(0)
+        );
     }
 
     @Test
@@ -67,6 +46,6 @@ class MainTest {
 
         Main.runTask(server, client, dataList.size());
 
-        Assertions.assertThat(server.getAccumulator()).isEqualTo(5050);
+        assertThat(server.getAccumulator()).isEqualTo(5050);
     }
 }
